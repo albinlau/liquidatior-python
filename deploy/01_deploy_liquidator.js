@@ -7,7 +7,7 @@ async function main() {
     // 获取部署账户
     const [deployer] = await ethers.getSigners();
     console.log("部署账户:", deployer.address);
-    console.log("账户余额:", ethers.utils.formatEther(await deployer.getBalance()), "ETH");
+    console.log("账户余额:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
     
     // 部署清算机器人合约
     console.log("\n部署清算机器人合约...");
@@ -18,8 +18,9 @@ async function main() {
         ARBITRUM_CONFIG.WETH
     );
     
-    await liquidator.deployed();
-    console.log("清算机器人合约已部署到:", liquidator.address);
+    // 等待合约部署完成
+    await liquidator.waitForDeployment();
+    console.log("清算机器人合约已部署到:", await liquidator.getAddress());
     
     // // 验证合约
     // if (network.name !== "hardhat" && network.name !== "localhost") {
@@ -48,7 +49,7 @@ async function main() {
     // }
     
     console.log("\n部署完成!");
-    console.log("清算机器人合约:", liquidator.address);
+    console.log("清算机器人合约:", await liquidator.getAddress());
     console.log("\n下一步操作:");
     console.log("1. 添加更多白名单地址");
     console.log("2. 确保合约有足够的 ETH 余额用于接收清算利润");
