@@ -3,8 +3,8 @@ from web3 import Web3
 # 网络配置
 ARBITRUM_RPC = "https://arb1.arbitrum.io/rpc"
 WEB3 = Web3(Web3.HTTPProvider(ARBITRUM_RPC))
-AAVE_V3_DEPLOY_BLOCK = 7742429
-BLOCK_CHUNK = 2000
+AAVE_V3_DEPLOY_BLOCK = 28542429
+BLOCK_CHUNK = 20000
 
 
 # 合约地址

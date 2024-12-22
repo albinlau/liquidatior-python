@@ -28,28 +28,28 @@ class TaskManager:
     
     def _init_tasks(self):
         """初始化所有任务"""
-        # 用户发现任务 - 每30秒执行一次
+        # 用户发现任务 - 每60分钟执行一次
         user_discovery = UserDiscoveryTask(
-            interval=30*60,
+            interval=60*60,
             db_session=self.db,
             aave_pool=self.aave.pool
         )
         
-        # 用户更新任务 - 每5秒执行一次
+        # 用户更新任务 - 每30分钟执行一次
         user_update = UserUpdateTask(
+            interval=30*60,
+            db_session=self.db,
+            aave_data=self.aave
+        )
+        
+        # 清算机会发现任务 - 每1分钟执行一次
+        opportunity_finder = OpportunityFinderTask(
             interval=5*60,
             db_session=self.db,
             aave_data=self.aave
         )
         
-        # 清算机会发现任务 - 每1秒执行一次
-        opportunity_finder = OpportunityFinderTask(
-            interval=1*60,
-            db_session=self.db,
-            aave_data=self.aave
-        )
-        
-        # 清算执行任务 - 每1秒执行一次
+        # 清算执行任务 - 每1分钟执行一次
         liquidation_executor = LiquidationExecutorTask(
             interval=1*60,
             db_session=self.db,

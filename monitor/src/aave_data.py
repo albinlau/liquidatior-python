@@ -35,36 +35,36 @@ class AaveDataProvider:
         """获取用户数据"""
         try:
             # 调用合约方法
-            func = self.pool.functions.getUserAccountData(user_address)
+            values = self.pool.functions.getUserAccountData(user_address).call()
             
-            # 构建调用数据
-            call_data = func.encode_input()
+            # # 构建调用数据
+            # call_data = func.buildTransaction({})['data']
             
-            # 构建交易对象
-            tx = {
-                'to': self.pool.address,
-                'data': call_data,
-                # 使用零地址作为调用者，因为这是只读操作
-                'from': '0x0000000000000000000000000000000000000000'
-            }
+            # # 构建交易对象
+            # tx = {
+            #     'to': self.pool.address,
+            #     'data': call_data,
+            #     # 使用零地址作为调用者，因为这是只读操作
+            #     'from': '0x0000000000000000000000000000000000000000'
+            # }
             
-            # 调用合约并获取原始数据
-            raw_data = await self.web3.eth.call(tx)
+            # # 调用合约并获取原始数据
+            # raw_data = await self.web3.eth.call(tx)
             
-            if not raw_data or len(raw_data) < 192:  # 6 * 32 bytes
-                print(f"获取用户 {user_address} 数据返回值长度不足: {len(raw_data) if raw_data else 0} bytes")
+            if not values or len(values) < 6:  # 6 * 32 bytes
+                print(f"获取用户 {user_address} 数据返回值长度不足: {len(values) if values else 0} bytes")
                 return None
-                
+            
             try:
-                # 手动解码返回值
-                values = []
-                for i in range(0, len(raw_data), 32):
-                    value = int.from_bytes(raw_data[i:i+32], byteorder='big')
-                    values.append(value)
+                # # 手动解码返回值
+                # values = []
+                # for i in range(0, len(raw_data), 32):
+                #     value = int.from_bytes(raw_data[i:i+32], byteorder='big')
+                #     values.append(value)
                 
-                if len(values) < 6:
-                    print(f"解码后的数据项数量不足: {len(values)}")
-                    return None
+                # if len(values) < 6:
+                #     print(f"解码后的数据项数量不足: {len(values)}")
+                #     return None
                 
                 return {
                     'total_collateral_eth': values[0],
@@ -76,7 +76,7 @@ class AaveDataProvider:
                 }
             except Exception as e:
                 print(f"解码用户 {user_address} 数据时出错: {str(e)}")
-                print(f"原始数据: {raw_data.hex()}")
+                print(f"原始数据: {values}")
                 return None
                 
         except Exception as e:
@@ -91,72 +91,75 @@ class AaveDataProvider:
         
         try:
             # 获取所有代币列表
-            func = self.pool.functions.getReservesList()
-            call_data = func.encode_input()
-            tx = {
-                'to': self.pool.address,
-                'data': call_data,
-                'from': '0x0000000000000000000000000000000000000000'
-            }
-            raw_data = await self.web3.eth.call(tx)
+            raw_data = self.pool.functions.getReservesList().call()
+            # call_data = func.encode_input()
+            # tx = {
+            #     'to': self.pool.address,
+            #     'data': call_data,
+            #     'from': '0x0000000000000000000000000000000000000000'
+            # }
+            # raw_data = await self.web3.eth.call(tx)
             
             # 解码返回值
-            reserves_list = self.web3.codec.decode_abi(['address[]'], raw_data)[0]
+            # reserves_list = self.web3.codec.decode_abi(['address[]'], raw_data)[0]
+            reserves_list = raw_data
             
             for token in reserves_list:
                 try:
                     # 获取用户在该代币上的数据
-                    func = self.data_provider.functions.getUserReserveData(token, user_address)
-                    call_data = func.encode_input()
-                    tx = {
-                        'to': self.data_provider.address,
-                        'data': call_data,
-                        'from': '0x0000000000000000000000000000000000000000'
-                    }
-                    raw_data = await self.web3.eth.call(tx)
+                    raw_data = self.data_provider.functions.getUserReserveData(token, user_address).call()
+                    # call_data = func.encode_input()
+                    # tx = {
+                    #     'to': self.data_provider.address,
+                    #     'data': call_data,
+                    #     'from': '0x0000000000000000000000000000000000000000'
+                    # }
+                    # raw_data = await self.web3.eth.call(tx)
                     
                     # 解码返回值
-                    output_types = [
-                        'uint256',  # currentATokenBalance
-                        'uint256',  # currentStableDebt
-                        'uint256',  # currentVariableDebt
-                        'uint256',  # principalStableDebt
-                        'uint256',  # scaledVariableDebt
-                        'uint256',  # stableBorrowRate
-                        'uint256',  # liquidityRate
-                        'uint40',   # stableRateLastUpdated
-                        'bool',     # usageAsCollateralEnabled
-                    ]
-                    decoded = self.web3.codec.decode_abi(output_types, raw_data)
+                    # output_types = [
+                    #     'uint256',  # currentATokenBalance
+                    #     'uint256',  # currentStableDebt
+                    #     'uint256',  # currentVariableDebt
+                    #     'uint256',  # principalStableDebt
+                    #     'uint256',  # scaledVariableDebt
+                    #     'uint256',  # stableBorrowRate
+                    #     'uint256',  # liquidityRate
+                    #     'uint40',   # stableRateLastUpdated
+                    #     'bool',     # usageAsCollateralEnabled
+                    # ]
+                    # decoded = self.web3.codec.decode_abi(output_types, raw_data)
+                    # decoded = raw_data
                     
-                    if decoded[0] > 0 or decoded[1] > 0 or decoded[2] > 0:  # 如果有存款或借款
-                        # 获取代币配置
-                        func = self.data_provider.functions.getReserveConfigurationData(token)
-                        call_data = func.encode_input()
-                        tx = {
-                            'to': self.data_provider.address,
-                            'data': call_data,
-                            'from': '0x0000000000000000000000000000000000000000'
-                        }
-                        raw_data = await self.web3.eth.call(tx)
+                    # if decoded[0] > 0 or decoded[1] > 0 or decoded[2] > 0:  # 如果有存款或借款
+                    #     # 获取代币配置
+                    #     raw_data = self.data_provider.functions.getReserveConfigurationData(token).call()
+                    #     # call_data = func.encode_input()
+                    #     # tx = {
+                    #     #     'to': self.data_provider.address,
+                    #     #     'data': call_data,
+                    #     #     'from': '0x0000000000000000000000000000000000000000'
+                    #     # }
+                    #     # raw_data = await self.web3.eth.call(tx)
                         
-                        # 解码返回值
-                        config_data = int.from_bytes(raw_data[:32], byteorder='big')
+                    #     # # 解码返回值
+                    #     # config_data = int.from_bytes(raw_data[:32], byteorder='big')
+                    #     config_data = raw_data
                         
-                        # 从配置数据中提取信息
-                        ltv = (config_data >> 0) & ((1 << 16) - 1)
-                        liquidation_threshold = (config_data >> 16) & ((1 << 16) - 1)
-                        liquidation_bonus = (config_data >> 32) & ((1 << 16) - 1)
-                        
-                        positions.append({
-                            'token_address': token,
-                            'collateral_amount': decoded[0],
-                            'debt_amount': decoded[1] + decoded[2],  # stableDebt + variableDebt
-                            'borrowing_enabled': True,  # 这个信息在其他位置
-                            'ltv': ltv,
-                            'liquidation_threshold': liquidation_threshold,
-                            'liquidation_bonus': liquidation_bonus
-                        })
+                    #     positions.append({
+                    #         'token_address': token,
+                    #         'collateral_amount': decoded[0],
+                    #         'debt_amount': decoded[1] + decoded[2],  # stableDebt + variableDebt
+                    #         'borrowing_enabled': config_data[6],  # 这个信息在其他位置
+                    #         'ltv': config_data[1],
+                    #         'liquidation_threshold': config_data[2],
+                    #         'liquidation_bonus': config_data[3]
+                    #     })
+                    positions.append({
+                        'token_address': token,
+                        'collateral_amount': raw_data[0],
+                        'debt_amount': raw_data[1] + raw_data[2],  # stableDebt + variableDebt
+                    })
                 except Exception as e:
                     print(f"处理代币 {token} 数据时出错: {str(e)}")
                     continue
@@ -186,22 +189,16 @@ class AaveDataProvider:
     
     async def get_token_data(self, token_address: str) -> Dict:
         """获取代币数据"""
-        func = self.data_provider.functions.getReserveData(token_address)
-        token_data = await self.web3.eth.call(func._build_transaction({
-            'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
-        }))
+        token_decoded = self.data_provider.functions.getReserveData(token_address).call()
         
-        func = self.data_provider.functions.getReserveConfigurationData(token_address)
-        config_data = await self.web3.eth.call(func._build_transaction({
-            'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
-        }))
+        config_decoded = self.data_provider.functions.getReserveConfigurationData(token_address).call()
         
-        # 解码返回值
-        token_types = ['uint256', 'uint256']
-        config_types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
+        # # 解码返回值
+        # token_types = ['uint256', 'uint256']
+        # config_types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
         
-        token_decoded = self.web3.codec.decode_abi(token_types, token_data)
-        config_decoded = self.web3.codec.decode_abi(config_types, config_data)
+        # token_decoded = self.web3.codec.decode_abi(token_types, token_data)
+        # config_decoded = self.web3.codec.decode_abi(config_types, config_data)
         
         return {
             'liquidity': token_decoded[0],
@@ -210,44 +207,38 @@ class AaveDataProvider:
             'ltv': config_decoded[2],
             'liquidation_threshold': config_decoded[3],
             'liquidation_bonus': config_decoded[4],
-            'decimals': config_decoded[5]
+            'decimals': config_decoded[0]
         }
     
     async def calculate_liquidation_profit(
         self,
         collateral_token: str,
         debt_token: str,
-        debt_amount: int,
-        user_address: str
+        debt_amount: int
     ) -> Tuple[float, bool]:
         """计算清算利润"""
         # 获取清算奖励
-        func = self.data_provider.functions.getReserveConfigurationData(collateral_token)
-        token_data = await self.web3.eth.call(func._build_transaction({
-            'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
-        }))
-        config_types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
-        config_decoded = self.web3.codec.decode_abi(config_types, token_data)
+        raw_data = self.data_provider.functions.getReserveConfigurationData(collateral_token).call()
+        # token_data = await self.web3.eth.call(func._build_transaction({
+        #     'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
+        # }))
+        # config_types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
+        # config_decoded = self.web3.codec.decode_abi(config_types, token_data)
+        config_decoded = raw_data
         liquidation_bonus = config_decoded[4] / 10000  # 转换为百分比
         
         # 获取价格
-        func = self.data_provider.functions.getAssetPrice(collateral_token)
-        collateral_price = await self.web3.eth.call(func._build_transaction({
-            'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
-        }))
+        collateral_price = self.data_provider.functions.getAssetPrice(collateral_token).call()
         
-        func = self.data_provider.functions.getAssetPrice(debt_token)
-        debt_price = await self.web3.eth.call(func._build_transaction({
-            'from': self.web3.eth.default_account or self.web3.eth.accounts[0]
-        }))
+        debt_price = self.data_provider.functions.getAssetPrice(debt_token).call()
         
         # 计算可获得的抵押品数量
         collateral_amount = (debt_amount * debt_price * (1 + liquidation_bonus)) / collateral_price
         
-        # 计算利润 (以 ETH 为单位)
-        profit = (collateral_amount * collateral_price - debt_amount * debt_price) / 1e18
+        # 计算利润 (以 USD 为单位)
+        profit = (collateral_amount * collateral_price - debt_amount * debt_price) / 1e8
         
         # 判断是否有利可图
         is_profitable = profit > 0
         
-        return profit, is_profitable 
+        return profit, is_profitable

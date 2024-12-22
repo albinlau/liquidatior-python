@@ -38,8 +38,7 @@ class OpportunityFinderTask(BaseTask):
                         profit, is_profitable = await self.aave.calculate_liquidation_profit(
                             position.token_address,
                             position.token_address,
-                            int(position.debt_amount * 1e18),
-                            user.address
+                            int(position.debt_amount * 1e18)
                         )
                         
                         if is_profitable and profit >= MONITOR_CONFIG['min_profit']:

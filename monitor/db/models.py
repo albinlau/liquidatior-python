@@ -62,9 +62,9 @@ class ScanStatus(Base):
     
     id = Column(Integer, primary_key=True)
     last_scanned_block = Column(Integer, nullable=False)
-    
+
 def init_db(db_url: str):
     """初始化数据库"""
     engine = create_engine(db_url)
     Base.metadata.create_all(engine)
-    return engine 
+    return engine
