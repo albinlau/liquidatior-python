@@ -1,6 +1,11 @@
 from web3 import Web3
 from typing import List, Dict
 from datetime import datetime, timezone
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 # 网络配置
 ARBITRUM_RPC = "https://arb1.arbitrum.io/rpc"
@@ -38,10 +43,10 @@ DECIMALS = {
 
 # 数据库配置
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'albin',
-    'password': '123456',
-    'database': 'aave_liquidation'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD', ''),
+    'database': os.getenv('DB_NAME', 'aave_liquidation')
 }
 
 # 监控配置
