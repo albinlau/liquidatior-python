@@ -13,11 +13,13 @@ from .user_discovery import UserDiscoveryTask
 from .user_update import UserUpdateTask
 from .opportunity_finder import OpportunityFinderTask
 from .liquidation_executor import LiquidationExecutorTask
+from .task_manager import TaskManager
 
 __all__ = [
     'BaseTask',
     'UserDiscoveryTask',
     'UserUpdateTask',
     'OpportunityFinderTask',
-    'LiquidationExecutorTask'
+    'LiquidationExecutorTask',
+    'TaskManager'
 ] 

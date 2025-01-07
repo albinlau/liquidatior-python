@@ -66,14 +66,14 @@ npx hardhat run deploy/01_deploy_liquidator.js --network arbitrum
 
 1. 启动监控程序：
 ```bash
-python monitor/scripts/run_monitor.py
+python monitor/main.py
 ```
 
 监控程序包含四个异步任务：
-- 用户发现（30秒/次）
-- 用户数据更新（5秒/次）
-- 清算机会发现（1秒/次）
-- 清算执行（1秒/次）
+- 用户发现（60分钟/次）
+- 用户数据更新（30分钟/次）
+- 清算机会发现（5分钟/次）
+- 清算执行（1分钟/次）
 
 ## 配置说明
 

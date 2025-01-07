@@ -1,4 +1,6 @@
 from web3 import Web3
+from typing import List, Dict
+from datetime import datetime, timezone
 
 # 网络配置
 ARBITRUM_RPC = "https://arb1.arbitrum.io/rpc"
@@ -48,5 +50,5 @@ MONITOR_CONFIG = {
     'min_health_factor': 1.0,  # 最小健康因子
     'min_liquidation_value': 10,  # 最小清算价值(USD)
     'max_gas_price': 150,  # 最大 gas 价格(Gwei)
-    'min_profit': 0.00001  # 最小利润(ETH)
+    'min_profit': 0.00001  # 最小利润(USD)
 } 

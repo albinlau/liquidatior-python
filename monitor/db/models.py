@@ -48,15 +48,6 @@ class LiquidationOpportunity(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     user = relationship("User", back_populates="liquidation_opportunities")
 
-class TokenPrice(Base):
-    __tablename__ = 'token_prices'
-    
-    id = Column(Integer, primary_key=True)
-    token_address = Column(String(42))
-    token_symbol = Column(String(10))
-    price_usd = Column(Float)
-    last_updated = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
 class ScanStatus(Base):
     __tablename__ = 'scan_status'
     

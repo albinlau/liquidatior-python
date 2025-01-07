@@ -1,13 +1,12 @@
+from datetime import datetime
 from typing import Set
-from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
 from web3.contract import Contract
 
-from monitor.config.config import AAVE_V3_DEPLOY_BLOCK, BLOCK_CHUNK
-
 from .base_task import BaseTask
-from monitor.db.models import User, ScanStatus
-from monitor.config import WEB3
+from ..db.models import User, ScanStatus
+from ..config import WEB3, AAVE_V3_DEPLOY_BLOCK, BLOCK_CHUNK
 
 # Aave V3 在 Arbitrum 上的部署区块
 # 参考: https://docs.aave.com/developers/deployed-contracts/v3-mainnet/arbitrum

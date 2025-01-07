@@ -1,20 +1,17 @@
 import os
-import sys
 import asyncio
 import signal
+from datetime import timezone
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-from datetime import timezone
 
-# 添加项目根目录到 Python 路径
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from monitor.tasks.task_manager import TaskManager
+from monitor.utils.aave_data import AaveDataProvider
+from monitor.config import WEB3, CONTRACTS, DB_CONFIG, MONITOR_CONFIG
+from monitor.db.models import init_db
 
-from src.task_manager import TaskManager
-from src.aave_data import AaveDataProvider
-from src.liquidator import Liquidator
-from config.config import WEB3, CONTRACTS, DB_CONFIG, MONITOR_CONFIG
-from db.models import init_db
 async def cleanup():
     # 等待所有任务完成
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
@@ -40,19 +37,10 @@ async def main():
         CONTRACTS['AAVE_POOL_DATA_PROVIDER']
     )
     
-    # 初始化清算执行器
-    liquidator = Liquidator(
-        WEB3,
-        os.getenv('PRIVATE_KEY'),
-        CONTRACTS['LIQUIDATOR'],
-        MONITOR_CONFIG['min_profit']
-    )
-    
     # 初始化任务管理器
     task_manager = TaskManager(
         db_session,
         aave_data_provider,
-        liquidator
     )
     
     def signal_handler(signum, frame):
@@ -74,7 +62,6 @@ async def main():
         print("程序被取消")
     finally:
         db_session.close()
-        engine.dispose()
         engine.dispose()
 
 if __name__ == "__main__":

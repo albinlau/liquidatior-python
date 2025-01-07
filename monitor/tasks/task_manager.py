@@ -1,27 +1,29 @@
+# 标准库
+import os
 import asyncio
 from typing import List
+
+# 第三方库
 from sqlalchemy.orm import Session
 
-from .tasks.base_task import BaseTask
-from .tasks.user_discovery import UserDiscoveryTask
-from .tasks.user_update import UserUpdateTask
-from .tasks.opportunity_finder import OpportunityFinderTask
-from .tasks.liquidation_executor import LiquidationExecutorTask
-from .aave_data import AaveDataProvider
-from .liquidator import Liquidator
-from monitor.config import MONITOR_CONFIG
+# 本地导入
+from .base_task import BaseTask
+from .user_discovery import UserDiscoveryTask
+from .user_update import UserUpdateTask
+from .opportunity_finder import OpportunityFinderTask
+from .liquidation_executor import LiquidationExecutorTask
+from ..utils.aave_data import AaveDataProvider
+from ..config import MONITOR_CONFIG, CONTRACTS, WEB3
 
 class TaskManager:
     def __init__(
         self,
         db_session: Session,
         aave_data: AaveDataProvider,
-        liquidator: Liquidator
     ):
         self.tasks: List[BaseTask] = []
         self.db = db_session
         self.aave = aave_data
-        self.liquidator = liquidator
         
         # 初始化任务
         self._init_tasks()
@@ -42,7 +44,7 @@ class TaskManager:
             aave_data=self.aave
         )
         
-        # 清算机会发现任务 - 每1分钟执行一次
+        # 清算机会发现任务 - 每5分钟执行一次
         opportunity_finder = OpportunityFinderTask(
             interval=5*60,
             db_session=self.db,
@@ -53,7 +55,10 @@ class TaskManager:
         liquidation_executor = LiquidationExecutorTask(
             interval=1*60,
             db_session=self.db,
-            liquidator=self.liquidator
+            web3=WEB3,
+            private_key=os.getenv('PRIVATE_KEY'),
+            liquidator_address=CONTRACTS['LIQUIDATOR'],
+            min_profit_eth=MONITOR_CONFIG['min_profit']
         )
         
         self.tasks.extend([

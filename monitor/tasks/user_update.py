@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta, timezone
 from typing import List
 from sqlalchemy.orm import Session
-from web3.contract import Contract
-
-from monitor.config.config import MONITOR_CONFIG
 
 from .base_task import BaseTask
-from monitor.db.models import User, Position
-from ..aave_data import AaveDataProvider
+from ..db.models import User, Position
+from ..utils.aave_data import AaveDataProvider
+from ..config import MONITOR_CONFIG
 
 class UserUpdateTask(BaseTask):
     def __init__(
