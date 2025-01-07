@@ -28,13 +28,6 @@ cache
 typechain-types
 .env
 .venv
-node_modules
-.env
-monitor/__pycache__
-monitor/db/__pycache__
-monitor/src/__pycache__
-monitor/config/__pycache__
-monitor/src/tasks/__pycache__
 
 # Hardhat files
 /cache
