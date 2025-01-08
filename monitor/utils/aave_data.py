@@ -1,16 +1,17 @@
 # 标准库
 import os
 import json
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 # 第三方库
 from web3 import Web3
 
 class AaveDataProvider:
-    def __init__(self, web3: Web3, pool_address: str, data_provider_address: str):
+    def __init__(self, web3: Web3, pool_address: str, data_provider_address: str, factory_address: str):
         self.web3 = web3
         self.pool = self._load_contract(pool_address, 'AavePool.json')
         self.data_provider = self._load_contract(data_provider_address, 'AaveDataProvider.json')
+        self.factory = self._load_contract(factory_address, 'UniswapV3Factory.json')
         
     def _load_contract(self, address: str, abi_file: str) -> object:
         """加载合约
@@ -176,4 +177,43 @@ class AaveDataProvider:
             return float(price) / 1e8  # 价格有8位小数
         except Exception as e:
             print(f"获取资产 {asset_address} 价格失败: {str(e)}")
+            return None 
+    
+    async def find_best_pool(self, token0: str, token1: str) -> Optional[str]:
+        """查找两个代币之间TVL最深的Uniswap V3池子
+        
+        Args:
+            token0: 代币0地址
+            token1: 代币1地址
+            
+        Returns:
+            池子地址或None
+        """
+        try:
+            # 标准费率列表
+            fee_tiers = [100, 500, 3000, 10000]  # 0.01%, 0.05%, 0.3%, 1%
+            
+            best_pool = None
+            max_tvl = 0
+            
+            for fee in fee_tiers:
+                # 获取池子地址
+                pool_address = self.factory.functions.getPool(token0, token1, fee).call()
+                
+                if pool_address != "0x0000000000000000000000000000000000000000":
+                    # 加载池子合约
+                    pool = self._load_contract(pool_address, 'UniswapV3Pool.json')
+                    
+                    # 获取池子流动性
+                    liquidity = pool.functions.liquidity().call()
+                    
+                    # 如果流动性更大，更新最佳池子
+                    if liquidity > max_tvl:
+                        max_tvl = liquidity
+                        best_pool = pool_address
+            
+            return best_pool
+            
+        except Exception as e:
+            print(f"查找最佳池子时出错: {str(e)}")
             return None 

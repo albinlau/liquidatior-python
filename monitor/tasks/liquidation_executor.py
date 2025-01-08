@@ -101,12 +101,22 @@ class LiquidationExecutorTask(BaseTask):
                 user = opp.user
                 
                 # 执行清算
+                # 查找最佳 Uniswap 池子
+                uniswap_pool = await self.aave.find_best_pool(
+                    opp.debt_token,
+                    opp.collateral_token
+                )
+                
+                if not uniswap_pool:
+                    print(f"未找到合适的 Uniswap 池子，跳过清算")
+                    continue
+                
                 tx_hash = await self.execute_liquidation(
                     user.address,
                     opp.debt_token,
                     opp.collateral_token,
                     int(opp.debt_amount * 1e18),
-                    None  # Uniswap pool 地址将由合约自动选择
+                    uniswap_pool
                 )
                 
                 if tx_hash:
