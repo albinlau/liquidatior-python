@@ -11,6 +11,12 @@ const config: HardhatUserConfig = {
       url: process.env.ARBITRUM_RPC_URL || "",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
+    hardhat: {
+      forking: {
+        url: "https://arb1.arbitrum.io/rpc",
+        blockNumber: 294021855
+      }
+    }
   },
 };
 

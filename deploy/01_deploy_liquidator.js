@@ -14,7 +14,7 @@ async function main() {
     const Liquidator = await ethers.getContractFactory("Liquidator");
     const liquidator = await Liquidator.deploy(
         ARBITRUM_CONFIG.AAVE_ADDRESSES_PROVIDER,
-        ARBITRUM_CONFIG.UNISWAP_SWAP_ROUTER,
+        // ARBITRUM_CONFIG.UNISWAP_SWAP_ROUTER,
         ARBITRUM_CONFIG.WETH,
         ARBITRUM_CONFIG.UNISWAP_V3_FACTORY,
     );
